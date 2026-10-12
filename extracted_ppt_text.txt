@@ -1,0 +1,291 @@
+=== ppt/slides/slide1.xml ===
+SYNOPSIS PRESENTATION
+KIRANA-OS
+Requirement gathering, analysis and proposed system for general, kirana,
+confectionery, sweet-shop and bakery retailers
+SUBMITTED BY
+ALRED ROZARIO 24215105
+BHAVYANSHU BHATIA 24215115
+PRIYANSHU SINGH TANWAR 24215130
+5BCA-B
+GUIDE
+[Prof. LATA YADAV
+[Name of Institute / University]  ·  [Department]  ·  August 2026
+SHOP COUNTER
+Inventory
+Billing
+Udhaar ledger
+Reports
+Suppliers
+Customers
+Scope of the proposed system
+
+=== ppt/slides/slide2.xml ===
+SECTION 01
+Target Users
+Primary, secondary and indirect participants in the system
+2
+PRIMARY USERS  —  shop owners  ·  based on 12 pilot responses
+Years in business (12 responses): mostly 2–5 years, with a few long-established stores; two responses (“1000”, “Infinity”) were not usable and are excluded from analysis.
+SECONDARY  —  Staff
+Counter / billing staff · restocking staff
+Separate staff login, owner controls access (Q23)
+INDIRECT  —  stored as records
+Suppliers / vendors (Q12, Q29) · credit customers (Q13, Q28)
+Additional branches, if any (Q19)
+Store type and employee counts are actual Google Form responses (12 of the target sample, collected as of Aug 2026). Staff and multi-branch use are separate questions in the form — actual demand will be confirmed once all responses are in.
+
+=== ppt/slides/slide3.xml ===
+SECTION 02
+Requirements Analysis
+From user input to a structured requirement set
+3
+User input
+Questionnaire
+7 sections · 38 questions
+Responses
+Requirement
+extraction
+System
+requirements
+REQUIREMENTS GROUPED INTO FIVE CATEGORIES
+1
+Functional
+Q19 – Q26
+Inventory, billing, barcode, expiry and low-stock alerts, supplier records, udhaar ledger, reports
+2
+Database
+Q27 – Q30
+Fields to store for products, customers, suppliers, and historical sales data
+3
+UI / UX
+Q31 – Q34
+Device used at the shop, interface language, comfort with technology, simple vs detailed dashboard
+4
+Operational
+Q22–Q24, Q32
+Offline billing, multi-user access, web + mobile platform, multi-language support
+5
+Business
+Q35 – Q38
+Subscription vs one-time model, acceptable price range, additional suggestions
+Categories follow the seven sections of the requirement-gathering form. No requirement is included that the form does not ask about.
+
+=== ppt/slides/slide4.xml ===
+SECTION 03
+Responses
+Collection status and current-workflow findings so far
+4
+12
+Responses collected
+6
+Store types represented
+Aug 2026
+Collection period (ongoing)
+38
+Questions in the form
+CURRENT WORKFLOW  —  Q9 · Q10 · Q11 · Q7
+Data from 12 Google Form responses collected to date. Feature-demand (Q19–Q26) and usability/pricing (Q31–Q37) charts will be added once those sections have enough responses to report meaningfully.
+
+=== ppt/slides/slide5.xml ===
+SECTION 04
+Response Analysis
+Pipeline from raw responses to a prioritised feature set
+5
+Raw
+responses
+Grouping by
+question type
+Pain point
+identification
+Requirement
+prioritisation
+Feature
+selection
+EARLY OBSERVATIONS FROM 12 RESPONSES
+41.7% of shops still bill by hand and another 33.3% use a standalone billing machine — no respondent yet uses an integrated shop-management system.
+66.7% track inventory in a paper register; only one respondent (8.3%) uses dedicated inventory software.
+75% restock only weekly, which raises the risk of stock-outs going unnoticed between visits.
+83.3% use no software or app at all; the 16.7% who do rely on generic billing apps (e.g. Vyapar), not an inventory + billing + udhaar system.
+REQUIREMENT CATEGORIES
+CARRIED FORWARD
+Inventory
+Billing
+Expiry
+Credit / Udhaar
+Suppliers
+Reporting
+Analysis reflects the 12 responses collected so far. Feature priorities (Q19–Q26), database fields (Q27–Q30) and usability/business requirements (Q31–Q38) will be finalised once collection is complete.
+
+=== ppt/slides/slide6.xml ===
+SECTION 05
+Analysis of Existing Solutions
+Current practice vs the proposed system, evidenced by pilot responses
+6
+Capability
+Manual practice
+(83.3% of respondents)
+Generic billing apps
+(16.7% — e.g. Vyapar)
+Proposed System
+Inventory tracking
+✗
+?
+✓
+Expiry-date alerts
+✗
+✗
+✓
+Billing / invoicing
+?
+✓
+✓
+Barcode / QR billing
+✗
+?
+✓
+Udhaar / credit ledger
+✗
+✗
+✓
+Supplier records
+✗
+?
+✓
+Sales & profit reports
+✗
+?
+✓
+Offline billing
+✓
+?
+✓
+Multi-language interface
+–
+?
+✓
+✓ supported     ✗ not supported     ? varies by product / not established by our questionnaire
+Generic categories are used because Q7–Q10 record whether a shop uses software and how it bills, without asking for product names. The rows marked ? are exactly the gaps that motivate the proposed system.
+
+=== ppt/slides/slide7.xml ===
+SECTION 06
+Problem Statement
+From current situation to the core problem and the need
+7
+CURRENT SITUATION  —  evidenced by 12 pilot responses
+Manual records
+66.7% track inventory in a register or notebook
+Scattered billing
+41.7% still bill by hand; 33.3% use a standalone machine
+No software adoption
+83.3% use no software / app to run the shop
+Stock uncertainty
+75% restock only weekly — stock-outs found late
+Expiry risk
+Unsold perishable and confectionery stock
+Udhaar tracking
+Credit kept informally, no formal ledger
+CORE PROBLEM
+Small general, kirana and confectionery stores have no simple, integrated way to manage inventory, billing, expiry and customer credit together — and existing software is either billing-only or built for larger retail.
+NEED
+A practical, affordable and easy-to-use system combining inventory, billing, expiry tracking, supplier records and an udhaar ledger — usable by owners with limited exposure to software.
+Every item in the current-situation row corresponds to a question already in the form (Sections 2 and 3); relative severity will be confirmed as more responses come in.
+
+=== ppt/slides/slide8.xml ===
+SECTION 07
+Proposed Features and Novelty
+System map of the proposed modules, and what makes the combination worth building
+8
+A.  PROPOSED FEATURES
+INVENTORY
+Stock levels
+Expiry-date tracking
+Low-stock alerts
+BILLING
+Invoicing
+Barcode / QR billing
+GST · Discounts
+Offline billing
+RECORDS
+Customer udhaar ledger
+Supplier management
+Sales history
+REPORTING & ACCESS
+Sales & profit reports · automated daily/weekly/monthly reports · multi-user staff login · multi-language interface · SMS/WhatsApp alerts · multi-branch
+B.  NOVELTY / INNOVATION
+1
+Expiry + billing in one system
+Perishable stock tracked where the sale happens
+2
+A formal udhaar ledger
+Per-customer balance and history, usually omitted
+3
+Scope decided from responses
+Feature set follows shopkeeper answers
+4
+Built for low-tech comfort
+Simple dashboard, regional language, offline billing
+5
+Integrated, not separate tools
+Inventory, billing and reporting share one record
+Every module above appears in Q19–Q30. Final scope will be limited to what respondents ask for; the rest is recorded as future work.
+
+=== ppt/slides/slide9.xml ===
+SECTION 08
+Experimental Setup
+Planned architecture and hardware — stack to be finalised after requirement analysis
+9
+SOFTWARE  —  planned stack
+Frontend
+Web dashboard + mobile app · [to be finalised]
+Backend / API
+Server-side framework · [to be finalised]
+Database
+Schema from Section 5 fields · [to be finalised]
+External services
+Barcode/QR scanning (Q20) · SMS/WhatsApp (Q26) — only if responses require
+HARDWARE  —  planned
+Development machine
+[Laptop / desktop configuration to be filled]
+Test smartphone
+Mobile app testing on the devices reported by respondents (Q31)
+Hosting
+[Cloud or local server to be finalised]
+Barcode scanner / receipt printer
+Only if barcode billing / counter use is confirmed
+Planned setup shown above, subject to change. Final implementation will be recorded in the final report once the stack is fixed after response analysis and system design.
+
+=== ppt/slides/slide10.xml ===
+SECTION 09
+Timeline
+Project roadmap from the third week of August
+10
+AUGUST
+W3 – W4
+Requirement gathering
+Form finalisation
+Distribution to shops
+▲ Current phase
+SEPTEMBER
+W1 – W4
+Response collection
+Response analysis
+Existing solution analysis
+OCTOBER
+W1 – W2
+System design
+Database design
+Development begins
+OCTOBER
+W3 – W4
+Development
+Testing
+Evaluation
+NOVEMBER
+W1 – W2
+Documentation
+Final presentation
+Project demo
+12 pilot responses already collected as of Aug 18 — ahead of the September collection window.
+Main dependency: system and database design cannot start until response analysis is complete. Durations are indicative and shown at month level; exact dates to be aligned with the department review schedule.
+
