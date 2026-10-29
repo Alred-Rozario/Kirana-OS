@@ -1,0 +1,14 @@
+[Unit]
+Description=Kirana-OS Flask Backend Gunicorn Service
+After=network.target
+
+[Service]
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/var/www/kirana-os/backend
+Environment=PATH=/var/www/kirana-os/backend/venv/bin
+ExecStart=/var/www/kirana-os/backend/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
