@@ -1,5 +1,6 @@
 import type {
-  Product, Customer, UdhaarTransaction, Supplier, Invoice, DashboardData, SynopsisData, SalesAnalytics
+  Product, Customer, UdhaarTransaction, Supplier, Invoice, DashboardData, SynopsisData, SalesAnalytics,
+  CloudServicesStatus, CloudBackupRecord
 } from '../types';
 
 const API_BASE = '/api';
@@ -111,4 +112,33 @@ export const api = {
 
   // PPT Synopsis
   getSynopsis: () => fetchJson<SynopsisData>('/synopsis'),
+
+  // AWS Cloud Services (EC2, S3, CloudFront)
+  getCloudStatus: () => fetchJson<CloudServicesStatus>('/cloud/status'),
+  uploadCloudMedia: (file: File, folder: string = 'products') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    return fetchJson<{
+      success: boolean;
+      s3_key: string;
+      s3_bucket: string;
+      cloudfront_url: string;
+      local_fallback_url?: string;
+      mode: string;
+      size_bytes: number;
+    }>('/cloud/s3/upload', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+  createCloudBackup: () =>
+    fetchJson<{ message: string; backup: CloudBackupRecord }>('/cloud/s3/backup', { method: 'POST' }),
+  getCloudBackups: () =>
+    fetchJson<CloudBackupRecord[]>('/cloud/s3/backups'),
+  invalidateCloudFront: (paths: string[] = ['/*']) =>
+    fetchJson<{ success: boolean; mode: string; status: string; invalidation_id: string }>(
+      '/cloud/cloudfront/invalidate',
+      { method: 'POST', body: JSON.stringify({ paths }) }
+    ),
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Package, Search, Plus, Pencil, Trash2, AlertTriangle, Clock, X, Save, FileUp
+  Package, Search, Plus, Pencil, Trash2, AlertTriangle, Clock, X, Save, FileUp, Upload, Globe
 } from 'lucide-react';
 import type { Product } from '../types';
 import { api } from '../services/api';
@@ -10,7 +10,7 @@ const CATEGORIES = ['Kirana / Staple', 'Dairy', 'Bakery', 'Confectionery', 'Swee
 const emptyForm = (): Omit<Product, 'id'> => ({
   name: '', barcode: '', category: 'Kirana / Staple', unit: 'kg', batch_no: '',
   cost_price: 0, selling_price: 0, stock_quantity: 0, min_stock_alert: 5,
-  expiry_date: '',
+  expiry_date: '', image_url: '',
 });
 
 export const InventoryView: React.FC = () => {
@@ -58,6 +58,22 @@ export const InventoryView: React.FC = () => {
     } finally {
       setLoading(false);
       e.target.value = '';
+    }
+  };
+
+  const [imageUploading, setImageUploading] = useState(false);
+
+  const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setImageUploading(true);
+      const res = await api.uploadCloudMedia(file, 'products');
+      setForm(prev => ({ ...prev, image_url: res.local_fallback_url || res.cloudfront_url }));
+    } catch (err: any) {
+      alert(`Image upload to S3 failed: ${err.message}`);
+    } finally {
+      setImageUploading(false);
     }
   };
 
@@ -198,8 +214,26 @@ export const InventoryView: React.FC = () => {
               return (
                 <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                   <td className="py-3 px-5">
-                    <p className="font-semibold text-slate-900">{p.name}</p>
-                    <p className="text-xs font-mono text-slate-500 mt-0.5">{p.batch_no || 'No batch'}</p>
+                    <div className="flex items-center gap-3">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                          <Package className="w-4 h-4" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-semibold text-slate-900">{p.name}</p>
+                          {p.image_url && (
+                            <span className="text-[9px] font-bold bg-purple-100 text-purple-700 px-1 py-0.5 rounded leading-none" title="Asset distributed via AWS CloudFront CDN Edge">
+                              CDN
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs font-mono text-slate-500 mt-0.5">{p.batch_no || 'No batch'}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="py-3 px-5">
                     <span className="badge-slate text-[10px] font-bold px-2 py-1 rounded-md">{p.category}</span>
@@ -290,6 +324,38 @@ export const InventoryView: React.FC = () => {
                 <select value={form.unit} onChange={e => setForm(prev => ({ ...prev, unit: e.target.value }))} className="w-full input-minimal">
                   {['kg', 'g', 'L', 'mL', 'pcs', 'box', 'pack', 'dozen'].map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
+              </div>
+
+              {/* AWS S3 & CloudFront Image Upload */}
+              <div className="col-span-2 p-3 bg-purple-50/60 border border-purple-200/70 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-purple-900 flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-purple-600" />
+                    Product Image (AWS S3 & CloudFront CDN)
+                  </label>
+                  {form.image_url && (
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                      Uploaded & CDN Cached
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  {form.image_url ? (
+                    <img src={form.image_url} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-purple-300" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-purple-100 border border-dashed border-purple-300 flex items-center justify-center text-purple-400">
+                      <Package className="w-6 h-6" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium cursor-pointer transition">
+                      <Upload className="w-3.5 h-3.5" />
+                      {imageUploading ? 'Uploading to S3...' : 'Choose Image to Upload'}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleProductImageUpload} disabled={imageUploading} />
+                    </label>
+                    <p className="text-[11px] text-purple-800 mt-1">Uploads to AWS S3 bucket and generates accelerated CloudFront CDN URL.</p>
+                  </div>
+                </div>
               </div>
             </div>
 

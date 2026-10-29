@@ -8,11 +8,11 @@ import { InventoryView } from './components/InventoryView';
 import { UdhaarLedgerView } from './components/UdhaarLedgerView';
 import { SupplierView } from './components/SupplierView';
 import { AnalyticsView } from './components/AnalyticsView';
+import { CloudServicesView } from './components/CloudServicesView';
 import { ReceiptModal } from './components/ReceiptModal';
 import { AuthView } from './components/AuthView';
 import type { DashboardData, Invoice } from './types';
 import { api } from './services/api';
-import { useLanguage } from './i18n';
 
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -104,6 +104,7 @@ export function App() {
         lowStockCount={dashboardData?.metrics.low_stock_count || 0}
         expiringCount={dashboardData?.metrics.expiring_soon_count || 0}
         onAlertsClick={() => handleTabChange('inventory')}
+        onCloudClick={() => handleTabChange('cloud')}
         onLogout={handleLogout}
       />
 
@@ -130,6 +131,7 @@ export function App() {
             {activeTab === 'udhaar' && <UdhaarLedgerView />}
             {activeTab === 'suppliers' && <SupplierView />}
             {activeTab === 'analytics' && <AnalyticsView />}
+            {activeTab === 'cloud' && <CloudServicesView />}
           </div>
         </main>
       </div>

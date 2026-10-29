@@ -10,6 +10,7 @@ export interface Product {
   min_stock_alert: number;
   expiry_date?: string | null;
   batch_no?: string | null;
+  image_url?: string | null;
   created_at?: string;
 }
 
@@ -132,3 +133,68 @@ export interface SynopsisData {
     status: string;
   }[];
 }
+
+export interface CloudServiceEC2 {
+  service_name: string;
+  category: string;
+  status: string;
+  instance_id: string;
+  instance_type: string;
+  region: string;
+  public_ip: string;
+  os: string;
+  runtime: string;
+  uptime: string;
+  cpu_utilization: string;
+  memory_used_mb: number;
+  memory_total_mb: number;
+}
+
+export interface CloudServiceS3 {
+  service_name: string;
+  category: string;
+  status: string;
+  bucket_name: string;
+  region: string;
+  storage_class: string;
+  encryption: string;
+  total_objects: number;
+  storage_used_mb: number;
+  free_tier_limit_gb: number;
+  features: string[];
+}
+
+export interface CloudServiceCloudFront {
+  service_name: string;
+  category: string;
+  status: string;
+  distribution_domain: string;
+  edge_protocol: string;
+  edge_locations: string[];
+  cache_hit_ratio: string;
+  avg_edge_latency_ms: number;
+  ttl_seconds: number;
+  origin: string;
+}
+
+export interface CloudServicesStatus {
+  mode: 'live' | 'simulated';
+  message: string;
+  services: {
+    ec2: CloudServiceEC2;
+    s3: CloudServiceS3;
+    cloudfront: CloudServiceCloudFront;
+  };
+}
+
+export interface CloudBackupRecord {
+  id: number;
+  tenant_id: number;
+  filename: string;
+  s3_key: string;
+  cloudfront_url: string;
+  size_bytes: number;
+  backup_type: string;
+  created_at: string;
+}
+

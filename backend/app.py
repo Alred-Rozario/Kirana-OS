@@ -7,14 +7,15 @@ from io import StringIO
 import random
 import bcrypt
 from datetime import datetime, timedelta
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from cloud_service import cloud_manager
 
 app = Flask(__name__)
 CORS(app)
 
-app.config["JWT_SECRET_KEY"] = "kirana-os-saas-super-secret-key"
+app.config["JWT_SECRET_KEY"] = "kirana-os-saas-super-secret-key-32bytes-secure"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=12)
 jwt = JWTManager(app)
 
@@ -147,6 +148,27 @@ def init_db():
         FOREIGN KEY (product_id) REFERENCES products(id)
     )
     ''')
+
+    # AWS Cloud Services Table: S3 & CloudFront Backups
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS cloud_backups (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tenant_id INTEGER NOT NULL,
+        filename TEXT NOT NULL,
+        s3_key TEXT NOT NULL,
+        cloudfront_url TEXT NOT NULL,
+        size_bytes INTEGER NOT NULL,
+        backup_type TEXT NOT NULL DEFAULT 'database',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+    )
+    ''')
+
+    # Ensure image_url column exists in products table
+    cursor.execute("PRAGMA table_info(products)")
+    existing_cols = [col[1] for col in cursor.fetchall()]
+    if 'image_url' not in existing_cols:
+        cursor.execute("ALTER TABLE products ADD COLUMN image_url TEXT")
 
     conn.commit()
 
@@ -386,12 +408,12 @@ def add_product():
     cursor = conn.cursor()
     try:
         cursor.execute('''
-        INSERT INTO products (tenant_id, name, barcode, category, selling_price, cost_price, unit, stock_quantity, min_stock_alert, expiry_date, batch_no)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO products (tenant_id, name, barcode, category, selling_price, cost_price, unit, stock_quantity, min_stock_alert, expiry_date, batch_no, image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             tenant_id, name, barcode, data.get('category', 'Kirana / Staple'), float(data.get('selling_price', 0)),
             float(data.get('cost_price', 0)), data.get('unit', 'pcs'), float(data.get('stock_quantity', 0)),
-            float(data.get('min_stock_alert', 10)), data.get('expiry_date'), data.get('batch_no')
+            float(data.get('min_stock_alert', 10)), data.get('expiry_date'), data.get('batch_no'), data.get('image_url')
         ))
         conn.commit()
         product_id = cursor.lastrowid
@@ -414,12 +436,13 @@ def update_product(prod_id):
     UPDATE products SET
         name = COALESCE(?, name), category = COALESCE(?, category), selling_price = COALESCE(?, selling_price),
         cost_price = COALESCE(?, cost_price), unit = COALESCE(?, unit), stock_quantity = COALESCE(?, stock_quantity),
-        min_stock_alert = COALESCE(?, min_stock_alert), expiry_date = ?, batch_no = COALESCE(?, batch_no)
+        min_stock_alert = COALESCE(?, min_stock_alert), expiry_date = ?, batch_no = COALESCE(?, batch_no),
+        image_url = COALESCE(?, image_url)
     WHERE id = ? AND tenant_id = ?
     ''', (
         data.get('name'), data.get('category'), data.get('selling_price'), data.get('cost_price'),
         data.get('unit'), data.get('stock_quantity'), data.get('min_stock_alert'), data.get('expiry_date'),
-        data.get('batch_no'), prod_id, tenant_id
+        data.get('batch_no'), data.get('image_url'), prod_id, tenant_id
     ))
     conn.commit()
     cursor.execute("SELECT * FROM products WHERE id = ?", (prod_id,))
@@ -723,6 +746,91 @@ def upload_suppliers_csv():
     conn.close()
     
     return jsonify({"message": f"Successfully imported {count} suppliers."}), 201
+
+# ==========================================
+# ☁️ AWS CLOUD SERVICES ROUTES
+# 1. AWS EC2 (Compute runtime & metrics)
+# 2. AWS S3 (Storage & Backups)
+# 3. AWS CloudFront (CDN delivery & invalidation)
+# ==========================================
+
+@app.route('/static/cloud_s3/<path:filename>')
+def serve_cloud_s3_static(filename):
+    static_dir = os.path.join(os.path.dirname(__file__), 'static', 'cloud_s3')
+    return send_from_directory(static_dir, filename)
+
+@app.route('/api/cloud/status', methods=['GET'])
+def get_cloud_status():
+    status = cloud_manager.get_cloud_status()
+    return jsonify(status)
+
+@app.route('/api/cloud/s3/upload', methods=['POST'])
+@jwt_required()
+def upload_cloud_media():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files['file']
+    if not file.filename:
+        return jsonify({"error": "Empty filename"}), 400
+
+    folder = request.form.get('folder', 'products')
+    file_bytes = file.read()
+    result = cloud_manager.upload_file_to_s3(file_bytes, file.filename, folder=folder)
+    return jsonify(result), 201
+
+@app.route('/api/cloud/s3/backup', methods=['POST'])
+@jwt_required()
+def create_cloud_backup():
+    _, tenant_id, _ = get_user_tenant()
+    try:
+        backup_result = cloud_manager.create_database_backup(DB_PATH, tenant_id=tenant_id)
+        
+        # Save backup metadata to cloud_backups table
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+        INSERT INTO cloud_backups (tenant_id, filename, s3_key, cloudfront_url, size_bytes, backup_type)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ''', (
+            tenant_id,
+            backup_result['backup_filename'],
+            backup_result['s3_key'],
+            backup_result['cloudfront_url'],
+            backup_result['size_bytes'],
+            'database'
+        ))
+        conn.commit()
+        backup_id = cursor.lastrowid
+        cursor.execute("SELECT * FROM cloud_backups WHERE id = ?", (backup_id,))
+        record = dict(cursor.fetchone())
+        conn.close()
+
+        return jsonify({
+            "message": "Database backup created and successfully uploaded to AWS S3 & CloudFront CDN",
+            "backup": record
+        }), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/cloud/s3/backups', methods=['GET'])
+@jwt_required()
+def get_cloud_backups():
+    _, tenant_id, _ = get_user_tenant()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM cloud_backups WHERE tenant_id = ? ORDER BY id DESC LIMIT 20", (tenant_id,))
+    backups = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify(backups)
+
+@app.route('/api/cloud/cloudfront/invalidate', methods=['POST'])
+@jwt_required()
+def invalidate_cloudfront():
+    data = request.json or {}
+    paths = data.get('paths', ['/*'])
+    result = cloud_manager.invalidate_cloudfront_cache(paths=paths)
+    return jsonify(result)
 
 if __name__ == '__main__':
     init_db()

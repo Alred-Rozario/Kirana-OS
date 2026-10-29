@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Store, UserCircle, Bell, LogOut, ChevronDown, Globe, Shield } from 'lucide-react';
+import { Store, UserCircle, Bell, LogOut, ChevronDown, Globe, Shield, Cloud } from 'lucide-react';
 import { useLanguage } from '../i18n';
 
 interface HeaderNavbarProps {
@@ -8,6 +8,7 @@ interface HeaderNavbarProps {
   lowStockCount: number;
   expiringCount: number;
   onAlertsClick?: () => void;
+  onCloudClick?: () => void;
   onLogout?: () => void;
 }
 
@@ -17,6 +18,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   lowStockCount,
   expiringCount,
   onAlertsClick,
+  onCloudClick,
   onLogout
 }) => {
   const { language, setLanguage, t } = useLanguage();
@@ -80,6 +82,16 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
               </div>
             )}
           </div>
+
+          {/* AWS Cloud 3-Tier Pill */}
+          <button
+            onClick={onCloudClick}
+            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-slate-900 to-indigo-900 hover:from-slate-800 hover:to-indigo-800 text-white rounded-lg text-xs font-semibold shadow-sm transition border border-indigo-700/50"
+            title="Open AWS Cloud Services Architecture Hub"
+          >
+            <Cloud className="w-3.5 h-3.5 text-indigo-300" />
+            <span>AWS Cloud (3-Tier)</span>
+          </button>
 
           <div className="w-px h-6 bg-slate-200 mx-2 hidden sm:block"></div>
 

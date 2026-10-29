@@ -1,11 +1,11 @@
 import React from 'react';
 import {
   LayoutDashboard, ShoppingCart, Package, BookOpen,
-  Truck, BarChart3, ShieldCheck, ChevronRight
+  Truck, BarChart3, ShieldCheck, ChevronRight, Cloud
 } from 'lucide-react';
 import { useLanguage } from '../i18n';
 
-export type TabType = 'dashboard' | 'pos' | 'inventory' | 'udhaar' | 'suppliers' | 'analytics' | 'synopsis';
+export type TabType = 'dashboard' | 'pos' | 'inventory' | 'udhaar' | 'suppliers' | 'analytics' | 'synopsis' | 'cloud';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -23,6 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, userR
     { id: 'udhaar' as TabType, label: t('menu.udhaar'), icon: BookOpen, role: 'All' },
     { id: 'suppliers' as TabType, label: t('menu.suppliers'), icon: Truck, role: 'Owner' },
     { id: 'analytics' as TabType, label: t('menu.analytics'), icon: BarChart3, role: 'Owner' },
+    { id: 'cloud' as TabType, label: 'AWS Cloud Hub', icon: Cloud, role: 'All', badge: '3-TIER' },
   ];
 
   return (
@@ -73,12 +74,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, userR
         })}
       </div>
 
-      <div className="p-4 border-t border-slate-200 bg-slate-50">
+      <div 
+        onClick={() => setActiveTab('cloud')}
+        className="p-4 border-t border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition"
+        title="Click to view AWS Cloud Services details"
+      >
         <div className="flex items-center gap-2.5">
           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-slate-900 truncate">System Online</p>
-            <p className="text-[10px] text-slate-500 truncate">All services operational</p>
+            <p className="text-xs font-semibold text-slate-900 truncate">AWS Cloud Online</p>
+            <p className="text-[10px] text-slate-500 truncate">EC2 • S3 • CloudFront</p>
           </div>
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
         </div>
